@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Analyzer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e4e4e7;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #34d399, #fbbf24);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(96, 165, 250, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #a1a1aa;
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .upload-section {
+            background: rgba(30, 30, 46, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            margin-bottom: 3rem;
+        }
+
+        .upload-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.4);
+            border-color: rgba(96, 165, 250, 0.3);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #60a5fa;
+            margin-bottom: 1.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .upload-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #f8fafc;
+        }
+
+        .upload-subtext {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .file-input-button:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        }
+
+        .analyze-button {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 1rem 3rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .analyze-button:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+        }
+
+        .analyze-button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(96, 165, 250, 0.2);
+            border-top: 4px solid #60a5fa;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .results {
+            display: none;
+            margin-top: 3rem;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .results-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #34d399, #10b981);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .results-subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .analysis-sections {
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        }
+
+        .analysis-card {
+            background: rgba(30, 30, 46, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .analysis-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(96, 165, 250, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+            color: #60a5fa;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #f8fafc;
+        }
+
+        .card-content {
+            color: #d1d5db;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .card-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .card-content li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .card-content li::before {
+            content: '•';
+            color: #60a5fa;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .score-card {
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 1rem 0;
+        }
+
+        .score-label {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #6ee7b7;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .file-name {
+            color: #60a5fa;
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .upload-section {
+                padding: 2rem 1rem;
+            }
+            
+            .analysis-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .analysis-card {
+                padding: 1.5rem;
+            }
+        }
+
+        .glow-effect {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glow-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .glow-effect:hover::before {
+            left: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-robot"></i> AI Resume Analyzer</h1>
+            <p>Upload your resume and get instant AI-powered analysis with detailed insights, strengths, weaknesses, and ATS optimization tips</p>
+        </div>
+
+        <div class="upload-section glow-effect">
+            <div class="upload-icon">
+                <i class="fas fa-file-upload"></i>
+            </div>
+            <div class="upload-text">Drop your resume here</div>
+            <div class="upload-subtext">Supports PDF files up to 16MB</div>
+            
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" class="file-input" accept=".pdf" />
+                <button class="file-input-button" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Choose PDF File
+                </button>
+            </div>
+            
+            <button id="analyzeBtn" class="analyze-button">
+                <i class="fas fa-magic"></i>
+                Analyze Resume
+            </button>
+            
+            <div id="fileName" class="file-name"></div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">AI is analyzing your resume...</div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="results-header">
+                <div class="results-title">Analysis Results</div>
+                <div class="results-subtitle">Your resume has been analyzed by our AI system</div>
+            </div>
+            
+            <div class="analysis-sections" id="analysisSections">
+                <!-- Analysis results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        // File input handling
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('fileName').textContent = `Selected: ${file.name}`;
+                document.getElementById('analyzeBtn').style.display = 'flex';
+                hideMessages();
+            }
+        });
+
+        // Analyze button click
+        document.getElementById('analyzeBtn').addEventListener('click', function() {
+            if (selectedFile) {
+                analyzeResume(selectedFile);
+            }
+        });
+
+        // Drag and drop functionality
+        const uploadSection = document.querySelector('.upload-section');
+        
+        uploadSection.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadSection.style.borderColor = 'rgba(96, 165, 250, 0.5)';
+            uploadSection.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
+        });
+
+        uploadSection.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadSection.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            uploadSection.style.backgroundColor = 'rgba(30, 30, 46, 0.8)';
+        });
+
+        uploadSection.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadSection.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            uploadSection.style.backgroundColor = 'rgba(30, 30, 46, 0.8)';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                selectedFile = files[0];
+                document.getElementById('fileName').textContent = `Selected: ${files[0].name}`;
+                document.getElementById('analyzeBtn').style.display = 'flex';
+                hideMessages();
+            } else {
+                showError('Please select a valid PDF file.');
+            }
+        });
+
+        function analyzeResume(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Show loading state
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('analyzeBtn').disabled = true;
+            document.getElementById('results').style.display = 'none';
+            hideMessages();
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+
+                if (data.success) {
+                    showSuccess('Resume analyzed successfully!');
+                    displayResults(data.sections);
+                } else {
+                    showError(data.error || 'An error occurred while analyzing the resume.');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+                showError('Network error. Please try again.');
+                console.error('Error:', error);
+            });
+        }
+
+        function displayResults(sections) {
+            const container = document.getElementById('analysisSections');
+            container.innerHTML = '';
+
+            const sectionConfigs = {
+                'Overall Summary': { icon: 'fas fa-clipboard-list', color: '#60a5fa' },
+                'Strengths': { icon: 'fas fa-thumbs-up', color: '#34d399' },
+                'Weaknesses / Improvement Areas': { icon: 'fas fa-exclamation-triangle', color: '#fbbf24' },
+                'Skills Mentioned': { icon: 'fas fa-code', color: '#8b5cf6' },
+                'Missing or Suggested Keywords': { icon: 'fas fa-key', color: '#ef4444' },
+                'Final ATS Readability Score': { icon: 'fas fa-star', color: '#f59e0b', isScore: true }
+            };
+
+            Object.entries(sections).forEach(([title, content]) => {
+                const config = sectionConfigs[title] || { icon: 'fas fa-info-circle', color: '#60a5fa' };
+                const card = createAnalysisCard(title, content, config);
+                container.appendChild(card);
+            });
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function createAnalysisCard(title, content, config) {
+            const card = document.createElement('div');
+            card.className = config.isScore ? 'analysis-card score-card' : 'analysis-card';
+
+            const icon = config.icon;
+            const color = config.color;
+
+            if (config.isScore) {
+                const scoreMatch = content.match(/(\d+)/);
+                const score = scoreMatch ? scoreMatch[1] : 'N/A';
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-icon" style="color: ${color}">
+                            <i class="${icon}"></i>
+                        </div>
+                        <div class="card-title">${title}</div>
+                    </div>
+                    <div class="score-display" style="color: ${color}">${score}</div>
+                    <div class="score-label">ATS Readability Score</div>
+                `;
+            } else {
+                const formattedContent = formatContent(content);
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-icon" style="color: ${color}">
+                            <i class="${icon}"></i>
+                        </div>
+                        <div class="card-title">${title}</div>
+                    </div>
+                    <div class="card-content">${formattedContent}</div>
+                `;
+            }
+
+            return card;
+        }
+
+        function formatContent(content) {
+            // Convert line breaks to HTML
+            content = content.replace(/\n/g, '<br>');
+            
+            // Convert bullet points
+            content = content.replace(/^[\s]*[-•]\s*(.+)$/gm, '<li>$1</li>');
+            content = content.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            
+            // Convert numbered lists
+            content = content.replace(/^[\s]*(\d+)\.\s*(.+)$/gm, '<li><strong>$1.</strong> $2</li>');
+            
+            return content;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
