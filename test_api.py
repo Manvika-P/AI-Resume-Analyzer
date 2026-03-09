@@ -1,8 +1,9 @@
 import google.generativeai as genai
 import sys
+import os
 
 try:
-    genai.configure(api_key="AIzaSyCpbHDXn0lNuZLSsuj-9i-Y09JO_V_pIz0")
+    genai.configure(api_key=os.environ.get("GEMINI_API_KEY", "your-api-key-here"))
     print(f"genai version: {genai.__version__}")
     model = genai.GenerativeModel("gemini-1.5-flash") # Testing standard name
     print("Model 1.5 created.")

@@ -12,10 +12,11 @@ from google import genai
 # 1️⃣  Configure Flask app and Gemini API key
 # ----------------------------------------------------------
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'
+app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 
 # Initialize the new genai client using environment variable or explicit string
-client = genai.Client(api_key="AIzaSyCpbHDXn0lNuZLSsuj-9i-Y09JO_V_pIz0")
+api_key = os.environ.get("GEMINI_API_KEY", "your-api-key-here")
+client = genai.Client(api_key=api_key)
 
 # Database Configuration
 basedir = os.path.abspath(os.path.dirname(__file__))
